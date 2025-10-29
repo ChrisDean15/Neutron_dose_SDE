@@ -272,18 +272,16 @@ struct CS_3d {
       double yield_temp = linear_interpolate_from_energy_index(e,energy_index,i);
       int particles_to_generate = floor(yield_temp+gsl_rng_uniform(gen));
       for(int j = 0; j!=particles_to_generate; j++){
+      double u = gsl_rng_uniform(gen);
       if (energy_index == 0) {
-      sample_from_energy_index(0, e,
-                                tmp_rvalue,
-                                tmp_energy_cm,i);
+      sample_from_energy_index(0, u,
+                                tmp_energy_cm,tmp_rvalue,i);
     } else if (energy_index == energy[i].size()) {
-      sample_from_energy_index(energy_index - 1, e,
-                                tmp_rvalue,
-                                tmp_energy_cm,i);
+      sample_from_energy_index(energy_index - 1, u,
+                                tmp_energy_cm,tmp_rvalue,i);
     } else {
-      sample_from_energy_index(energy_index, e,
-                                tmp_rvalue,
-                                tmp_energy_cm,i);
+      sample_from_energy_index(energy_index, u,
+                                tmp_energy_cm,tmp_rvalue,i);
       }
       tmp_particle_type.push_back({tmp_energy_cm, tmp_rvalue});
 

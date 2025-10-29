@@ -73,6 +73,9 @@ struct Atom {
     ne_energy_angle.sample_secondary_particles(e, gen, particle_list); //should be an output of all possible particles to handle
     for(size_t i = 0; i!=particle_list.size(); i++) {
       for (size_t j = 0; j!=particle_list[i].size(); j++) {
+        if (i==1) {
+        //std::cout << particle_list[i][j][0] << "outgoing energy value" << std::endl;
+        }
         double eps_a = a_atom * e / (a_atom + a_inc);
         double eps_b = (a_atom + a_inc) * particle_list[i][j][0] / (a_atom + a_inc - charge_mass_numbers[i][1]);
         double e_a = eps_a + s(a_atom,a_atom+a_inc,z_atom,z_atom+z_inc,I_in);
@@ -89,9 +92,9 @@ struct Atom {
         particle_list[i][j][1] = log(z2) / aval;
         double out_energy_lab =
             particle_list[i][j][0] + e*a_inc*charge_mass_numbers[i][1] / pow(a_inc+a_atom, 2) +
-            2 * sqrt(particle_list[i][j][0] * e *a_inc*charge_mass_numbers[i][1]) * particle_list[i][j][1] / (a_inc + charge_mass_numbers[i][1]);
+            2 * sqrt(particle_list[i][j][0] * e *a_inc*charge_mass_numbers[i][1]) * particle_list[i][j][1] / (a_atom + a_inc);
         particle_list[i][j][1] = sqrt(particle_list[i][j][0] / out_energy_lab) * particle_list[i][j][1] +
-                              sqrt(e*a_inc*charge_mass_numbers[i][1] / out_energy_lab) / (a_inc + charge_mass_numbers[i][1]);
+                              sqrt(e*a_inc*charge_mass_numbers[i][1] / out_energy_lab) / (a_atom + a_inc);
         particle_list[i][j][0] = out_energy_lab;
         double beta = 2 * M_PI * gsl_rng_uniform(gen);
         std::vector<double> ang_tmp = compute_new_angle(ang, acos(particle_list[i][j][1]), beta);
