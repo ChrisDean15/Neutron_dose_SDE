@@ -6,7 +6,6 @@
 #include <gsl/gsl_sf_gamma.h>
 #include <iostream>
 #include <vector>
-
 #ifndef PB
 #define PB
 

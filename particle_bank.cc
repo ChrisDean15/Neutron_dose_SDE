@@ -41,10 +41,6 @@ struct particle_bank {
                     std::vector<double> sec_position={particle_traject.x[particle_traject.ix-1][0], particle_traject.x[particle_traject.ix-1][1], particle_traject.x[particle_traject.ix-1][2]};
                     std::vector<double> sec_angle={secondary_particles[i][j][1], secondary_particles[i][j][2]};
                     add_particle(sec_energy, sec_position, sec_angle, i);
-                    if (i==1) {
-                        std::cout << "Neutron energy: " << sec_energy << " MeV at position (" << sec_position[0] << ", " << sec_position[1] << ", " << sec_position[2] << ") cm" << std::endl;
-                        std::cout << "Neutron angle: " << sec_angle[0] << " rad polar, " << sec_angle[1] << " rad azimuthal" << std::endl;
-                    }
                 }
             }
         }

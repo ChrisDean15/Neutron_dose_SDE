@@ -4,6 +4,7 @@
 #include "particle_beam.cc"
 #include "particle_bank.cc"
 #include <cfloat>
+#include <cmath>
 #include <cstdlib>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -12,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <nlohmann/json.hpp>
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -148,6 +150,22 @@ int main(int argc, char **argv) {
     }
   }
   p_bank.evaluate_particles_proton_neutron_storage(gen);
+  nlohmann::json json_output = nlohmann::json::array();
+  for (size_t j = 0; j!=p_bank.particles[1].size(); j++){
+      nlohmann::json neutron_info;
+      neutron_info["id"]=j;
+      neutron_info["energy_MeV"]=p_bank.particles[1][j].energy;
+      neutron_info["position_cm_x"]=p_bank.particles[1][j].position[0];
+      neutron_info["position_cm_y"]=p_bank.particles[1][j].position[1];
+      neutron_info["position_cm_z"]=p_bank.particles[1][j].position[2];
+      neutron_info["angle_x"]=sin(p_bank.particles[1][j].angle[0])*cos(p_bank.particles[1][j].angle[1]);
+      neutron_info["angle_y"]=sin(p_bank.particles[1][j].angle[0])*sin(p_bank.particles[1][j].angle[1]);
+      neutron_info["angle_z"]=cos(p_bank.particles[1][j].angle[0]);
+      json_output.push_back(neutron_info);
+  }
+  std::ofstream outputfile("Output/output_neutrons.json");
+  outputfile << json_output.dump(8);
+  outputfile.close();
   gsl_rng_free(gen);
   return 1;
 }
