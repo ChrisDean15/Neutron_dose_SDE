@@ -2,12 +2,10 @@
 #include <cstdlib>
 #include <fstream>
 #include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #ifndef CS
 #define CS
@@ -503,7 +501,7 @@ struct CS_2d {
 
   CS_2d() : energy(), exit_angle(), cdf() {}
 
-  double sample_from_energy_index(const size_t energy_index,
+  double sample_from_energy_index(const double energy_index,
                                   const double u) const {
     double ret = 0;
     double diff = 0;

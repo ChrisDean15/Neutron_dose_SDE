@@ -1,13 +1,12 @@
 #include "cross_sections.cc"
 #include <cstdlib>
 #include <vector>
-#include <cmath>
 
 #ifndef MAT
 #define MAT
 
 struct Atom {
-  // General constructor with nucleus of atom equal to incident particle
+ // General constructor with nucleus of atom equal to incident particle
   Atom(const int a_atom0, const int z_atom0, const int a_inc0, const int z_inc0, const std::vector<std::vector<int>> charge_mass_numbers0, const double I_in0, const std::vector<double> I_out0, const double c_in0, const std::vector<double> c_out0, const std::string ne_r,
        const std::string el_ruth_cs, const std::vector<std::string> ne_ea,
        const double cutoff, const double back_cutoff)
@@ -95,7 +94,11 @@ struct Atom {
             2 * sqrt(particle_list[i][j][0] * e *a_inc*charge_mass_numbers[i][1]) * particle_list[i][j][1] / (a_atom + a_inc);
         particle_list[i][j][1] = sqrt(particle_list[i][j][0] / out_energy_lab) * particle_list[i][j][1] +
                               sqrt(e*a_inc*charge_mass_numbers[i][1] / out_energy_lab) / (a_atom + a_inc);
-        particle_list[i][j][0] = out_energy_lab;
+        if (particle_list[i][j][0] == 0) {
+          particle_list[i][j][1] = 1;  
+        } else {
+          particle_list[i][j][0] = out_energy_lab;
+        }
         double beta = 2 * M_PI * gsl_rng_uniform(gen);
         std::vector<double> ang_tmp = compute_new_angle(ang, acos(particle_list[i][j][1]), beta);
         particle_list[i][j][1] = ang_tmp[0];
@@ -104,7 +107,10 @@ struct Atom {
     }
     e = 0;
   }
-  const int a_atom, z_atom, a_inc, z_inc;
+  const double a_atom;
+  const int z_atom;
+  const double a_inc;
+  const int z_inc;
   const std::vector<std::vector<int>> charge_mass_numbers;
   const double I_in;
   const std::vector<double> I_out;
@@ -139,7 +145,7 @@ struct Material {
       std::stringstream iss;
       iss << line;
       getline(iss, token, ' ');
-      at.push_back(atoms[atoi(token.c_str())]);
+      at.push_back(atoms[atoi(token.c_str()) - 1]);
       getline(iss, token, ' ');
       x.push_back(atof(token.c_str()));
     }
@@ -151,11 +157,11 @@ struct Material {
     double mecsq = 0.511;   // mass of electron * speed of light squared, MeV
     double mprocsq = 938.346; // mass of proton * speed of light squared, MeV
     double mpcsq = mprocsq*at[0].a_inc; //approx mass of particle * speed of light squared, MeV
-    double z_part = at[0].z_inc;
     double betasq = (2 * mpcsq + e) * e / pow(mpcsq + e, 2);
+    double z_part = at[0].z_inc;
     double ret = 0;
     for (unsigned int i = 0; i < at.size(); i++) {
-      ret += x[i] * pow(z_part,2)* 0.3072 * at[i].z_atom * density *
+      ret += x[i] * 0.3072 * pow(z_part,2)* at[i].z_atom * density *
              (log(2 * mecsq * betasq / (I * (1 - betasq))) - betasq) /
              (betasq * at[i].a_atom); // MeV / cm
     }
@@ -167,16 +173,16 @@ struct Material {
     double mpcsq = mprocsq*at[0].a_inc; //approx mass of particle * speed of light squared, MeV 
     double pv = (2 * mpcsq + e) * e / (mpcsq + e);
     double betasq = (2 * mpcsq + e) * e / pow(mpcsq + e, 2);
-    double c = 29979245800; // speed of light
-    double vel = sqrt(betasq) * c;
+    double z_part = at[0].z_inc;
     double p = pv / sqrt(betasq); // momentum in MeV / c.
     // effective chi_c_sq is just the sum of individual elements
     double chi_c_sq = 0;
     std::vector<double> chi_a_sq_vec(at.size());
     for (unsigned int i = 0; i < at.size(); i++) {
-      chi_c_sq += pow(at[i].z_inc,2)*x[i] * at[i].z_atom * (at[i].z_atom + 1.0) / at[i].a_atom;
-      chi_a_sq_vec[i] = 2.007e-5 * pow(at[i].z_atom, 2.0 / 3) *
-                        (1 + 3.34 * pow(at[i].z_inc*at[i].z_atom / (137 * vel), 2)) / (p * p);
+      chi_c_sq += pow(z_part,2)*x[i] * at[i].z_atom * (at[i].z_atom + 1.0) / at[i].a_atom;
+      chi_a_sq_vec[i] = 2.007e-5 * pow(at[i].z_atom, 2 / 3) *
+                        (1 + 3.34 * pow(z_part*at[i].z_atom / (137 * sqrt(betasq)), 2)) /
+                        (p * p);
     }
     chi_c_sq *= 0.157 * dt * density / (pv * pv);
     // effective chi_a_sq is a weighted average on the log-scale
@@ -210,7 +216,7 @@ struct Material {
     double log_molecule_density =
         log(density) + log_avogadro; // molecules / cm^3
     double ret =
-        4 * pow(at[0].z_inc,2)* M_PI * z * (1 - betasq / 2) / sqrt(1 - betasq) *
+        4 * pow(at[0].z_inc,2)*M_PI * z * (1 - betasq / 2) / sqrt(1 - betasq) *
         exp(2 * (log(alpha) + log_hbar + log_c) + log_molecule_density);
     return sqrt(ret);
   }
@@ -294,7 +300,7 @@ struct Material {
       rate += x[i] * at[i].el_ruth_rate.evaluate(e);
     }
     double u = gsl_rng_uniform(gen);
-    int ind = 0;
+    double ind = 0;
     double tmp = x[ind] * at[ind].el_ruth_rate.evaluate(e) / rate;
     while (tmp < u) {
       ind++;
