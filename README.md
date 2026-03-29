@@ -2,6 +2,8 @@
 This repository houses a simulator for an SDE describing a the path of a proton in proton beam therapy.
 It is under active development and **not fit for standalone use**.
 
+TODO: MAKE APROPRIATE FOR NEUTRON NOT PROTON
+
 # Installation
 
 In Unix-like environments, simply call `make` in the project root. You will need:
